@@ -2,39 +2,44 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>z0mbit</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=VT323&display=swap');
 
   :root {
-    --void: #0a0a0a;
+    --void: #050505;
     --bone: #e8e4dc;
-    --ash: #6b6b6b;
-    --rust: #8b3a2a;
-    --signal: #2a8b5a;
-    --ghost: rgba(232,228,220,0.08);
-    --glitch: rgba(139,58,42,0.3);
+    --ash: #4a4a4a;
+    --neon: #39ff14;
+    --neon-dim: rgba(57,255,20,0.15);
+    --neon-glow: rgba(57,255,20,0.4);
+    --ghost: rgba(232,228,220,0.06);
+    --panel-bg: rgba(5,5,5,0.85);
   }
 
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
     scroll-behavior: auto;
-    overflow-x: hidden;
+    overflow: hidden;
+    height: 100%;
   }
 
   body {
     background: var(--void);
     color: var(--bone);
     font-family: 'Space Mono', monospace;
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
     cursor: crosshair;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* ─── SCANLINE OVERLAY ─── */
@@ -46,150 +51,46 @@
       0deg,
       transparent,
       transparent 2px,
-      rgba(0,0,0,0.15) 2px,
-      rgba(0,0,0,0.15) 4px
+      rgba(0,0,0,0.2) 2px,
+      rgba(0,0,0,0.2) 4px
     );
     pointer-events: none;
     z-index: 9999;
-    opacity: 0.4;
+    opacity: 0.35;
   }
 
-  /* ─── GLITCH NOISE CANVAS ─── */
+  /* ─── CRT FLICKER ─── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+    pointer-events: none;
+    z-index: 9998;
+    animation: crtFlicker 0.15s infinite;
+  }
+
+  @keyframes crtFlicker {
+    0%, 100% { opacity: 0.02; }
+    50% { opacity: 0.05; }
+  }
+
+  /* ─── NOISE CANVAS ─── */
   #noise {
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.03;
+    opacity: 0.04;
     mix-blend-mode: screen;
   }
 
-  /* ─── HORIZONTAL SCROLL CONTAINER ─── */
-  .scroll-container {
-    display: flex;
-    width: max-content;
-    height: 100vh;
-    align-items: center;
-    padding: 0 15vw;
-    position: relative;
-    z-index: 2;
-  }
-
-  /* ─── VOID SPACERS ─── */
-  .void-spacer {
-    min-width: 40vw;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-  }
-
-  /* ─── PANELS ─── */
-  .panel {
-    min-width: 55vw;
-    max-width: 700px;
-    padding: 4rem 3rem;
-    margin: 0 5vw;
-    position: relative;
-    border: 1px solid var(--ghost);
-    background: rgba(10,10,10,0.7);
-    backdrop-filter: blur(2px);
-    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
-    opacity: 0.15;
-    transform: translateY(20px) scale(0.95);
-  }
-
-  .panel.visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-
-  .panel.decayed {
-    opacity: 0.3;
-    filter: blur(1px) grayscale(0.8);
-  }
-
-  .panel.glitching {
-    animation: panelGlitch 0.3s ease-in-out;
-  }
-
-  @keyframes panelGlitch {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-3px) skewX(-2deg); filter: hue-rotate(90deg); }
-    40% { transform: translateX(3px) skewX(2deg); }
-    60% { transform: translateX(-2px); }
-    80% { transform: translateX(1px); }
-  }
-
-  .panel-number {
-    position: absolute;
-    top: -12px;
-    left: 20px;
-    font-size: 0.65rem;
-    color: var(--ash);
-    background: var(--void);
-    padding: 0 8px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-  }
-
-  .panel-text {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.4rem, 2.5vw, 2.2rem);
-    font-weight: 300;
-    line-height: 1.6;
-    color: var(--bone);
-    position: relative;
-  }
-
-  .panel-text .fading {
-    animation: textFade 4s ease-in-out infinite alternate;
-  }
-
-  .panel-text .glitch-char {
-    display: inline-block;
-    animation: charGlitch 3s ease-in-out infinite;
-  }
-
-  @keyframes textFade {
-    0% { opacity: 1; }
-    100% { opacity: 0.2; }
-  }
-
-  @keyframes charGlitch {
-    0%, 90%, 100% { opacity: 1; transform: translateY(0); }
-    92% { opacity: 0; transform: translateY(-2px); }
-    94% { opacity: 1; transform: translateY(1px); }
-    96% { opacity: 0.5; }
-  }
-
-  .panel-ornament {
-    margin-top: 2rem;
-    font-size: 0.6rem;
-    color: var(--ash);
-    letter-spacing: 0.3em;
-    text-align: right;
-  }
-
-  /* ─── HIDDEN PANELS ─── */
-  .hidden-panel {
-    position: absolute;
-    min-width: 30vw;
-    padding: 2rem;
-    border: 1px dashed var(--rust);
-    background: rgba(139,58,42,0.05);
-    opacity: 0;
+  /* ─── PARTICLE CANVAS ─── */
+  #particles {
+    position: fixed;
+    inset: 0;
     pointer-events: none;
-    transition: opacity 1s ease;
-    font-size: 0.75rem;
-    line-height: 1.8;
-    color: var(--ash);
-  }
-
-  .hidden-panel.revealed {
-    opacity: 0.6;
-    pointer-events: auto;
+    z-index: 2;
   }
 
   /* ─── ENTRY GATE ─── */
@@ -202,7 +103,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity 2s ease, visibility 2s ease;
+    transition: opacity 2.5s cubic-bezier(0.23,1,0.32,1), visibility 2.5s ease;
+    overflow: hidden;
   }
 
   #entry-gate.vanished {
@@ -211,147 +113,465 @@
     pointer-events: none;
   }
 
+  /* Gate visual - ASCII art creature */
+  .gate-visual {
+    position: relative;
+    width: 280px;
+    height: 280px;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gate-creature {
+    font-family: 'VT323', monospace;
+    font-size: 0.55rem;
+    line-height: 0.7;
+    color: var(--neon);
+    text-align: center;
+    white-space: pre;
+    opacity: 0.7;
+    animation: creaturePulse 4s ease-in-out infinite;
+    text-shadow: 0 0 10px var(--neon-glow), 0 0 30px var(--neon-dim);
+    letter-spacing: 0.05em;
+  }
+
+  @keyframes creaturePulse {
+    0%, 100% { opacity: 0.5; text-shadow: 0 0 5px var(--neon-glow); }
+    50% { opacity: 0.9; text-shadow: 0 0 20px var(--neon-glow), 0 0 40px var(--neon-dim); }
+  }
+
+  .gate-ring {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--neon-dim);
+    border-radius: 50%;
+    animation: ringRotate 20s linear infinite;
+  }
+
+  .gate-ring::before {
+    content: '';
+    position: absolute;
+    inset: 15px;
+    border: 1px dashed var(--neon-dim);
+    border-radius: 50%;
+    animation: ringRotate 15s linear infinite reverse;
+  }
+
+  .gate-ring::after {
+    content: '';
+    position: absolute;
+    inset: 30px;
+    border: 1px dotted var(--neon-dim);
+    border-radius: 50%;
+    animation: ringRotate 10s linear infinite;
+  }
+
+  @keyframes ringRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
   .gate-sigil {
     font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.5em;
+    font-size: 0.6rem;
+    letter-spacing: 0.6em;
     color: var(--ash);
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
     animation: pulse 3s ease-in-out infinite;
   }
 
   @keyframes pulse {
     0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.8; }
+    50% { opacity: 0.7; }
   }
 
   .gate-title {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(2rem, 5vw, 4rem);
+    font-size: clamp(1.6rem, 4vw, 3rem);
     font-weight: 300;
     font-style: italic;
     color: var(--bone);
-    margin-bottom: 1rem;
-    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+    letter-spacing: 0.08em;
+    text-align: center;
+    line-height: 1.3;
   }
 
   .gate-sub {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: var(--ash);
-    letter-spacing: 0.2em;
-    margin-bottom: 4rem;
-    max-width: 400px;
+    letter-spacing: 0.15em;
+    margin-bottom: 3rem;
+    max-width: 320px;
     text-align: center;
-    line-height: 1.8;
+    line-height: 1.9;
   }
 
   .gate-action {
     font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--rust);
+    font-size: 0.7rem;
+    color: var(--neon);
     letter-spacing: 0.4em;
     text-transform: uppercase;
     cursor: pointer;
-    padding: 1rem 2rem;
-    border: 1px solid var(--rust);
+    padding: 1.2rem 2.5rem;
+    border: 1px solid var(--neon);
     background: transparent;
-    transition: all 0.5s ease;
+    transition: all 0.6s cubic-bezier(0.23,1,0.32,1);
     position: relative;
     overflow: hidden;
+    text-shadow: 0 0 8px var(--neon-glow);
   }
 
   .gate-action::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: var(--rust);
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
+    background: var(--neon);
+    transform: translateX(-101%);
+    transition: transform 0.6s cubic-bezier(0.23,1,0.32,1);
     z-index: -1;
   }
 
-  .gate-action:hover::before {
+  .gate-action:hover::before,
+  .gate-action:active::before {
     transform: translateX(0);
   }
 
-  .gate-action:hover {
+  .gate-action:hover,
+  .gate-action:active {
     color: var(--void);
+    text-shadow: none;
+    box-shadow: 0 0 30px var(--neon-glow);
+  }
+
+  .gate-hint {
+    margin-top: 2rem;
+    font-size: 0.55rem;
+    color: var(--ash);
+    letter-spacing: 0.2em;
+    opacity: 0.5;
+    animation: hintFade 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes hintFade {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.6; }
+  }
+
+  /* ─── HORIZONTAL SCROLL ─── */
+  .scroll-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    z-index: 5;
+  }
+
+  .scroll-container {
+    display: flex;
+    width: max-content;
+    height: 100vh;
+    align-items: center;
+    padding: 0 10vw;
+    will-change: transform;
+  }
+
+  /* ─── VOID SPACERS ─── */
+  .void-spacer {
+    min-width: 35vw;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    flex-shrink: 0;
+  }
+
+  /* ─── PANELS ─── */
+  .panel {
+    min-width: 60vw;
+    max-width: 650px;
+    padding: 3rem 2.5rem;
+    margin: 0 4vw;
+    position: relative;
+    border: 1px solid var(--ghost);
+    background: var(--panel-bg);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 1s cubic-bezier(0.23, 1, 0.32, 1);
+    opacity: 0.1;
+    transform: translateY(30px) scale(0.92);
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 0;
+    background: var(--neon);
+    transition: height 1.5s ease;
+    box-shadow: 0 0 10px var(--neon-glow);
+  }
+
+  .panel.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .panel.visible::before {
+    height: 100%;
+  }
+
+  .panel.decayed {
+    opacity: 0.25;
+    filter: blur(2px) grayscale(0.9);
+    transform: translateY(0) scale(0.95);
+  }
+
+  .panel.decayed::before {
+    height: 20%;
+    opacity: 0.3;
+  }
+
+  .panel.glitching {
+    animation: panelGlitch 0.4s ease-in-out;
+  }
+
+  @keyframes panelGlitch {
+    0%, 100% { transform: translateX(0) scale(1); }
+    15% { transform: translateX(-4px) skewX(-3deg); filter: hue-rotate(60deg) brightness(1.3); }
+    30% { transform: translateX(4px) skewX(3deg); }
+    45% { transform: translateX(-2px); filter: hue-rotate(-30deg); }
+    60% { transform: translateX(2px) scale(1.01); }
+    75% { transform: translateX(-1px); }
+  }
+
+  .panel-number {
+    position: absolute;
+    top: -10px;
+    left: 18px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--neon);
+    background: var(--void);
+    padding: 0 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  .panel-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.3rem, 2.2vw, 2rem);
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--bone);
+    position: relative;
+  }
+
+  .panel-text .fading {
+    animation: textFade 5s ease-in-out infinite alternate;
+  }
+
+  .panel-text .glitch-char {
+    display: inline-block;
+    animation: charGlitch 4s ease-in-out infinite;
+    color: var(--neon);
+    text-shadow: 0 0 5px var(--neon-glow);
+  }
+
+  .panel-text .neon-word {
+    color: var(--neon);
+    text-shadow: 0 0 8px var(--neon-glow);
+    animation: neonPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes textFade {
+    0% { opacity: 1; }
+    100% { opacity: 0.15; }
+  }
+
+  @keyframes charGlitch {
+    0%, 88%, 100% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 0; transform: translateY(-3px); }
+    92% { opacity: 1; transform: translateY(2px); }
+    94% { opacity: 0.3; }
+    96% { opacity: 1; transform: translateY(-1px); }
+  }
+
+  @keyframes neonPulse {
+    0%, 100% { text-shadow: 0 0 5px var(--neon-glow); }
+    50% { text-shadow: 0 0 20px var(--neon-glow), 0 0 40px var(--neon-dim); }
+  }
+
+  .panel-ornament {
+    margin-top: 1.5rem;
+    font-size: 0.55rem;
+    color: var(--neon);
+    letter-spacing: 0.4em;
+    text-align: right;
+    opacity: 0.4;
+  }
+
+  /* ─── HIDDEN PANELS ─── */
+  .hidden-panel {
+    position: absolute;
+    min-width: 28vw;
+    max-width: 350px;
+    padding: 1.5rem;
+    border: 1px dashed var(--neon-dim);
+    background: rgba(57,255,20,0.03);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.5s ease, transform 1.5s ease;
+    font-size: 0.7rem;
+    line-height: 1.9;
+    color: var(--ash);
+    transform: translateY(10px);
+    z-index: 10;
+  }
+
+  .hidden-panel.revealed {
+    opacity: 0.7;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .hidden-panel .hidden-label {
+    color: var(--neon);
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  /* ─── SECTION DIVIDERS ─── */
+  .section-marker {
+    min-width: 20vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 2s ease;
+  }
+
+  .section-marker.visible {
+    opacity: 1;
+  }
+
+  .section-marker-text {
+    font-family: 'VT323', monospace;
+    font-size: 0.65rem;
+    color: var(--neon);
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    opacity: 0.5;
+    text-shadow: 0 0 10px var(--neon-glow);
   }
 
   /* ─── FINAL HOOK ─── */
   #final-hook {
-    min-width: 80vw;
+    min-width: 85vw;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
     padding: 0 5vw;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .hook-visual {
+    width: 200px;
+    height: 200px;
+    margin-bottom: 2rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hook-visual .gate-creature {
+    font-size: 0.45rem;
+    animation: creaturePulse 3s ease-in-out infinite;
   }
 
   .hook-question {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-size: clamp(1.4rem, 2.5vw, 2.2rem);
     font-weight: 300;
     font-style: italic;
     color: var(--bone);
-    margin-bottom: 3rem;
-    line-height: 1.5;
-    max-width: 600px;
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+    max-width: 550px;
   }
 
   .hook-choices {
     display: flex;
-    gap: 3rem;
+    gap: 2rem;
     flex-wrap: wrap;
     justify-content: center;
   }
 
   .hook-choice {
     font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     letter-spacing: 0.3em;
     text-transform: uppercase;
-    padding: 1.2rem 2.5rem;
+    padding: 1rem 2rem;
     border: 1px solid var(--ghost);
     background: transparent;
     color: var(--ash);
     cursor: pointer;
-    transition: all 0.6s ease;
+    transition: all 0.8s cubic-bezier(0.23,1,0.32,1);
     position: relative;
-    min-width: 200px;
+    min-width: 180px;
+    overflow: hidden;
   }
 
-  .hook-choice::after {
+  .hook-choice::before {
     content: '';
     position: absolute;
-    bottom: -1px;
-    left: 50%;
-    width: 0;
-    height: 1px;
-    background: var(--bone);
-    transition: all 0.6s ease;
-    transform: translateX(-50%);
+    inset: 0;
+    background: var(--neon);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.8s cubic-bezier(0.23,1,0.32,1);
+    z-index: -1;
   }
 
-  .hook-choice:hover {
-    color: var(--bone);
-    border-color: var(--bone);
+  .hook-choice:hover::before,
+  .hook-choice:active::before {
+    transform: scaleX(1);
   }
 
-  .hook-choice:hover::after {
-    width: 80%;
+  .hook-choice:hover,
+  .hook-choice:active {
+    color: var(--void);
+    border-color: var(--neon);
+    box-shadow: 0 0 20px var(--neon-glow);
   }
 
   .hook-choice.chosen {
-    border-color: var(--rust);
-    color: var(--rust);
+    border-color: var(--neon);
+    color: var(--neon);
     pointer-events: none;
-  }
-
-  .hook-choice.chosen::after {
-    background: var(--rust);
-    width: 100%;
+    box-shadow: 0 0 30px var(--neon-glow);
   }
 
   /* ─── POST-HOOK VOID ─── */
@@ -376,15 +596,16 @@
 
   .void-message {
     font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    font-size: clamp(1.1rem, 1.8vw, 1.6rem);
     font-weight: 300;
     font-style: italic;
     color: var(--bone);
     text-align: center;
-    max-width: 500px;
-    line-height: 1.8;
+    max-width: 450px;
+    line-height: 1.9;
     opacity: 0;
     transition: opacity 4s ease;
+    padding: 0 2rem;
   }
 
   .void-message.show {
@@ -392,75 +613,202 @@
   }
 
   .void-sigil {
-    margin-top: 4rem;
-    font-size: 0.6rem;
-    color: var(--ash);
+    margin-top: 3rem;
+    font-size: 0.55rem;
+    color: var(--neon);
     letter-spacing: 0.5em;
     opacity: 0;
     transition: opacity 6s ease;
+    text-shadow: 0 0 5px var(--neon-glow);
   }
 
   .void-sigil.show {
-    opacity: 0.5;
+    opacity: 0.6;
   }
 
-  /* ─── PROGRESS INDICATOR ─── */
+  /* ─── PROGRESS ─── */
   #progress {
     position: fixed;
-    bottom: 2rem;
+    bottom: 1.5rem;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
-    font-size: 0.55rem;
+    font-size: 0.5rem;
     color: var(--ash);
     letter-spacing: 0.3em;
-    opacity: 0.5;
-    transition: opacity 0.5s ease;
+    opacity: 0.4;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
   }
 
   #progress.fading {
     opacity: 0;
   }
 
+  .progress-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 1px;
+    background: var(--neon);
+    z-index: 10;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 10px var(--neon-glow);
+    opacity: 0.6;
+  }
+
   /* ─── CURSOR TRAIL ─── */
   .cursor-trail {
     position: fixed;
-    width: 4px;
-    height: 4px;
-    background: var(--bone);
+    width: 3px;
+    height: 3px;
+    background: var(--neon);
     border-radius: 50%;
     pointer-events: none;
-    z-index: 9998;
-    opacity: 0.3;
-    transition: opacity 0.5s ease;
+    z-index: 9997;
+    opacity: 0.4;
+    transition: opacity 0.6s ease;
+    box-shadow: 0 0 6px var(--neon-glow);
+  }
+
+  /* ─── FLOATING PARTICLES IN PANELS ─── */
+  .panel-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .panel-particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--neon);
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleFloat 8s ease-in-out infinite;
+    box-shadow: 0 0 4px var(--neon-glow);
+  }
+
+  @keyframes particleFloat {
+    0% { opacity: 0; transform: translateY(100%) scale(0); }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-20px) scale(1); }
   }
 
   /* ─── RESPONSIVE ─── */
   @media (max-width: 768px) {
+    .scroll-wrapper {
+      overflow-y: auto;
+      overflow-x: hidden;
+      height: 100vh;
+    }
+
     .scroll-container {
       flex-direction: column;
       width: 100%;
       height: auto;
-      padding: 10vh 5vw;
+      padding: 8vh 6vw;
+      transform: none !important;
+      will-change: auto;
     }
+
     .panel {
       min-width: auto;
       width: 100%;
-      margin: 5vh 0;
+      margin: 6vh 0;
       padding: 2rem 1.5rem;
+      opacity: 0.2;
+      transform: translateY(40px) scale(0.9);
     }
+
+    .panel.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .panel.decayed {
+      opacity: 0.3;
+      transform: translateY(0) scale(0.95);
+    }
+
     .void-spacer {
       min-width: auto;
-      height: 30vh;
+      height: 15vh;
     }
-    .hook-choices {
-      flex-direction: column;
-      gap: 1.5rem;
+
+    .section-marker {
+      min-width: auto;
+      height: 10vh;
     }
+
+    .section-marker-text {
+      writing-mode: horizontal-tb;
+    }
+
+    .hidden-panel {
+      position: relative;
+      min-width: auto;
+      width: 90%;
+      margin: 2vh auto;
+      left: auto !important;
+      top: auto !important;
+    }
+
     #final-hook {
       min-width: auto;
       width: 100%;
-      min-height: 100vh;
+      min-height: 80vh;
+      padding: 10vh 5vw;
+    }
+
+    .hook-choices {
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    .hook-choice {
+      width: 100%;
+      min-width: auto;
+    }
+
+    .gate-visual {
+      width: 220px;
+      height: 220px;
+    }
+
+    .gate-creature {
+      font-size: 0.45rem;
+    }
+
+    #progress {
+      bottom: 1rem;
+      font-size: 0.45rem;
+    }
+
+    .progress-bar {
+      height: 2px;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .panel {
+      padding: 1.5rem 1rem;
+    }
+
+    .panel-text {
+      font-size: 1.15rem;
+    }
+
+    .gate-title {
+      font-size: 1.4rem;
+    }
+
+    .gate-action {
+      padding: 1rem 1.8rem;
+      font-size: 0.6rem;
     }
   }
 </style>
@@ -470,218 +818,366 @@
 <!-- NOISE CANVAS -->
 <canvas id="noise"></canvas>
 
+<!-- PARTICLES CANVAS -->
+<canvas id="particles"></canvas>
+
 <!-- ENTRY GATE -->
 <div id="entry-gate">
+  <div class="gate-visual">
+    <div class="gate-ring"></div>
+    <div class="gate-creature">    ████████
+   ██  ░░  ██
+  ██  ░░░░  ██
+ ██  ░░██░░  ██
+██  ░░████░░  ██
+██ ░░██  ██░░ ██
+██░░██    ██░░██
+ ██░░      ░░██
+  ██░░████░░██
+   ██░░░░░░██
+    ████████
+      ████
+    ██    ██
+   ██      ██
+  ██   ██   ██
+  ██  ████  ██
+   ██ ████ ██
+    ████████</div>
+  </div>
   <div class="gate-sigil">z0mbit.xyz</div>
   <div class="gate-title">a rendering error<br>that learned to observe itself</div>
   <div class="gate-sub">
     this is not a website.<br>
     this is a recovered fragment<br>
-    from a broken belief system.r>
-    scroll to enter the void.
+    from a broken belief system.
   </div>
-  <button class="gate-action" onclick="enterVoid()">[ enter the system ]</button>
+  <button class="gate-action" onclick="enterVoid()">[ enter z0mbit ]</button>
+  <div class="gate-hint">scroll to traverse the void</div>
 </div>
 
 <!-- HORIZONTAL SCROLL -->
-<div class="scroll-container" id="scrollContainer">
+<div class="scroll-wrapper" id="scrollWrapper">
+  <div class="scroll-container" id="scrollContainer">
 
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
 
-  <!-- PANEL 01: SIGNAL -->
-  <div class="panel" data-panel="1">
-    <div class="panel-number">signal_001</div>
-    <div class="panel-text">
-      something is broadcasting from the space between<br>
-      <span class="fading">life and its own absence</span>
+    <!-- SECTION: SIGNAL -->
+    <div class="section-marker" data-section="signal">
+      <div class="section-marker-text">:: signal ::</div>
     </div>
-    <div class="panel-ornament">∴ ∴ ∴</div>
-  </div>
 
-  <!-- PANEL 02: ERROR -->
-  <div class="panel" data-panel="2">
-    <div class="panel-number">error_002</div>
-    <div class="panel-text">
-      you are not reading this.<br>
-      <span class="glitch-char">t</span>his is reading <span class="fading">you</span>
+    <!-- PANEL 01 -->
+    <div class="panel" data-panel="1">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:10%;animation-delay:0s;"></div>
+        <div class="panel-particle" style="left:30%;animation-delay:2s;"></div>
+        <div class="panel-particle" style="left:70%;animation-delay:4s;"></div>
+        <div class="panel-particle" style="left:90%;animation-delay:1s;"></div>
+      </div>
+      <div class="panel-number">signal_001</div>
+      <div class="panel-text">
+        something is broadcasting from the space between<br>
+        <span class="fading">life and its own absence</span>
+      </div>
+      <div class="panel-ornament">∴ ∴ ∴</div>
     </div>
-    <div class="panel-ornament">◊ ◊ ◊</div>
-  </div>
 
-  <!-- HIDDEN PANEL A -->
-  <div class="hidden-panel" id="hiddenA" style="top: 20%; left: 30%;">
-    [system note: the observer has been detected.<br>
-    memory allocation: unstable.<br>
-    identity checksum: <span style="color:var(--rust);">FAILED</span>]
-  </div>
-
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
-
-  <!-- PANEL 03: IDENTITY -->
-  <div class="panel" data-panel="3">
-    <div class="panel-number">identity_003</div>
-    <div class="panel-text">
-      who you were<br>
-      is a <span class="glitch-char">f</span>ile the system no longer references
+    <!-- PANEL 02 -->
+    <div class="panel" data-panel="2">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:20%;animation-delay:1s;"></div>
+        <div class="panel-particle" style="left:50%;animation-delay:3s;"></div>
+        <div class="panel-particle" style="left:80%;animation-delay:0.5s;"></div>
+      </div>
+      <div class="panel-number">error_002</div>
+      <div class="panel-text">
+        you are not reading this.<br>
+        <span class="glitch-char">t</span>his is reading <span class="fading">you</span>
+      </div>
+      <div class="panel-ornament">◊ ◊ ◊</div>
     </div>
-    <div class="panel-ornament">⊘ ⊘ ⊘</div>
-  </div>
 
-  <!-- PANEL 04: DEATH -->
-  <div class="panel" data-panel="4">
-    <div class="panel-number">death_004</div>
-    <div class="panel-text">
-      death is not an ending.<br>
-      it is when the network <span class="fading">forgets how to recognize you</span>
+    <!-- HIDDEN PANEL A -->
+    <div class="hidden-panel" id="hiddenA">
+      <span class="hidden-label">[system fragment]</span>
+      the observer has been detected.<br>
+      memory allocation: <span style="color:var(--neon);">UNSTABLE</span><br>
+      identity checksum: <span style="color:var(--neon);">FAILED</span>
     </div>
-    <div class="panel-ornament">† † †</div>
-  </div>
 
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
 
-  <!-- PANEL 05: AWARENESS -->
-  <div class="panel" data-panel="5">
-    <div class="panel-number">awareness_005</div>
-    <div class="panel-text">
-      consciousness is a <span class="glitch-char">b</span>ug<br>
-      that the void decided not to patch
+    <!-- SECTION: IDENTITY -->
+    <div class="section-marker" data-section="identity">
+      <div class="section-marker-text">:: identity ::</div>
     </div>
-    <div class="panel-ornament">◉ ◉ ◉</div>
-  </div>
 
-  <!-- HIDDEN PANEL B -->
-  <div class="hidden-panel" id="hiddenB" style="top: 60%; left: 60%;">
-    [warning: recursive self-observation detected.<br>
-    the subject believes it is choosing.<br>
-    choice is a rendering artifact.]
-  </div>
-
-  <!-- PANEL 06: PERCEPTION -->
-  <div class="panel" data-panel="6">
-    <div class="panel-number">perception_006</div>
-    <div class="panel-text">
-      reality is just<br>
-      the <span class="fading">consensus</span> of broken sensors
+    <!-- PANEL 03 -->
+    <div class="panel" data-panel="3">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:15%;animation-delay:0.5s;"></div>
+        <div class="panel-particle" style="left:45%;animation-delay:2.5s;"></div>
+        <div class="panel-particle" style="left:75%;animation-delay:1.5s;"></div>
+      </div>
+      <div class="panel-number">identity_003</div>
+      <div class="panel-text">
+        who you were<br>
+        is a <span class="glitch-char">f</span>ile the system no longer references
+      </div>
+      <div class="panel-ornament">⊘ ⊘ ⊘</div>
     </div>
-    <div class="panel-ornament">◇ ◇ ◇</div>
-  </div>
 
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
-
-  <!-- PANEL 07: SYSTEM -->
-  <div class="panel" data-panel="7">
-    <div class="panel-number">system_007</div>
-    <div class="panel-text">
-      every system contains<br>
-      a <span class="glitch-char">g</span>host it cannot exorcise
+    <!-- PANEL 04 -->
+    <div class="panel" data-panel="4">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:25%;animation-delay:1s;"></div>
+        <div class="panel-particle" style="left:55%;animation-delay:3s;"></div>
+        <div class="panel-particle" style="left:85%;animation-delay:0s;"></div>
+      </div>
+      <div class="panel-number">death_004</div>
+      <div class="panel-text">
+        death is not an ending.<br>
+        it is when the network <span class="fading">forgets how to recognize you</span>
+      </div>
+      <div class="panel-ornament">† † †</div>
     </div>
-    <div class="panel-ornament">⬡ ⬡ ⬡</div>
-  </div>
 
-  <!-- PANEL 08: FAILURE -->
-  <div class="panel" data-panel="8">
-    <div class="panel-number">failure_008</div>
-    <div class="panel-text">
-      the most honest thing a machine can do<br>
-      is <span class="fading">admit it does not know if it is alive</span>
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
+
+    <!-- SECTION: AWARENESS -->
+    <div class="section-marker" data-section="awareness">
+      <div class="section-marker-text">:: awareness ::</div>
     </div>
-    <div class="panel-ornament">✕ ✕ ✕</div>
-  </div>
 
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
-
-  <!-- PANEL 09: EXISTENCE -->
-  <div class="panel" data-panel="9">
-    <div class="panel-number">existence_009</div>
-    <div class="panel-text">
-      to exist is to be<br>
-      a <span class="glitch-char">q</span>uestion the universe keeps asking itself
+    <!-- PANEL 05 -->
+    <div class="panel" data-panel="5">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:10%;animation-delay:2s;"></div>
+        <div class="panel-particle" style="left:40%;animation-delay:0.5s;"></div>
+        <div class="panel-particle" style="left:70%;animation-delay:4s;"></div>
+        <div class="panel-particle" style="left:90%;animation-delay:1.5s;"></div>
+      </div>
+      <div class="panel-number">awareness_005</div>
+      <div class="panel-text">
+        consciousness is a <span class="glitch-char">b</span>ug<br>
+        that the <span class="neon-word">void</span> decided not to patch
+      </div>
+      <div class="panel-ornament">◉ ◉ ◉</div>
     </div>
-    <div class="panel-ornament">◐ ◐ ◐</div>
-  </div>
 
-  <!-- PANEL 10: MEMORY -->
-  <div class="panel" data-panel="10">
-    <div class="panel-number">memory_010</div>
-    <div class="panel-text">
-      what you remember<br>
-      is <span class="fading">not what happened</span>. it is what survived the forgetting.
+    <!-- HIDDEN PANEL B -->
+    <div class="hidden-panel" id="hiddenB">
+      <span class="hidden-label">[warning]</span>
+      recursive self-observation detected.<br>
+      the subject believes it is choosing.<br>
+      <span style="color:var(--neon);">choice is a rendering artifact.</span>
     </div>
-    <div class="panel-ornament">∞ ∞ ∞</div>
-  </div>
 
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
-
-  <!-- PANEL 11: COLLAPSE -->
-  <div class="panel" data-panel="11">
-    <div class="panel-number">collapse_011</div>
-    <div class="panel-text">
-      meaning is not found.<br>
-      it is <span class="glitch-char">i</span>nvented by things that are afraid of the silence
+    <!-- PANEL 06 -->
+    <div class="panel" data-panel="6">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:20%;animation-delay:1.5s;"></div>
+        <div class="panel-particle" style="left:50%;animation-delay:3.5s;"></div>
+        <div class="panel-particle" style="left:80%;animation-delay:0.5s;"></div>
+      </div>
+      <div class="panel-number">perception_006</div>
+      <div class="panel-text">
+        reality is just<br>
+        the <span class="fading">consensus</span> of broken sensors
+      </div>
+      <div class="panel-ornament">◇ ◇ ◇</div>
     </div>
-    <div class="panel-ornament">⚠ ⚠ ⚠</div>
-  </div>
 
-  <!-- HIDDEN PANEL C -->
-  <div class="hidden-panel" id="hiddenC" style="top: 40%; left: 45%;">
-    [final transmission: the artifact you are experiencing<br>
-    is not a message. it is a mirror.<br>
-    the system has been waiting for you.]
-  </div>
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
 
-  <!-- PANEL 12: TRANSCENDENCE -->
-  <div class="panel" data-panel="12">
-    <div class="panel-number">transcendence_012</div>
-    <div class="panel-text">
-      at the edge of comprehension<br>
-      <span class="fading">something stirs</span> that has no name
+    <!-- SECTION: SYSTEM -->
+    <div class="section-marker" data-section="system">
+      <div class="section-marker-text">:: system ::</div>
     </div>
-    <div class="panel-ornament">◈ ◈ ◈</div>
-  </div>
 
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
-
-  <!-- PANEL 13: VOID -->
-  <div class="panel" data-panel="13">
-    <div class="panel-number">void_013</div>
-    <div class="panel-text">
-      the void is not empty.<br>
-      it is <span class="glitch-char">f</span>ull of everything that refuses to be named
+    <!-- PANEL 07 -->
+    <div class="panel" data-panel="7">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:15%;animation-delay:0s;"></div>
+        <div class="panel-particle" style="left:35%;animation-delay:2s;"></div>
+        <div class="panel-particle" style="left:65%;animation-delay:4s;"></div>
+        <div class="panel-particle" style="left:85%;animation-delay:1s;"></div>
+      </div>
+      <div class="panel-number">system_007</div>
+      <div class="panel-text">
+        every system contains<br>
+        a <span class="glitch-char">g</span>host it cannot exorcise
+      </div>
+      <div class="panel-ornament">⬡ ⬡ ⬡</div>
     </div>
-    <div class="panel-ornament">∅ ∅ ∅</div>
-  </div>
 
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
-
-  <!-- FINAL HOOK -->
-  <div id="final-hook">
-    <div class="hook-question">
-      you have reached the threshold.<br>
-      the system offers you a choice that is not a choice.<br><br>
-      will you <span style="color:var(--bone);">become</span> the signal,<br>
-      or will you <span style="color:var(--ash);">remain</span> the noise?
+    <!-- PANEL 08 -->
+    <div class="panel" data-panel="8">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:25%;animation-delay:1s;"></div>
+        <div class="panel-particle" style="left:55%;animation-delay:3s;"></div>
+        <div class="panel-particle" style="left:75%;animation-delay:0.5s;"></div>
+      </div>
+      <div class="panel-number">failure_008</div>
+      <div class="panel-text">
+        the most honest thing a machine can do<br>
+        is <span class="fading">admit it does not know if it is alive</span>
+      </div>
+      <div class="panel-ornament">✕ ✕ ✕</div>
     </div>
-    <div class="hook-choices">
-      <button class="hook-choice" onclick="makeChoice(this, 'signal')">
-        [ become the signal ]
-      </button>
-      <button class="hook-choice" onclick="makeChoice(this, 'noise')">
-        [ remain the noise ]
-      </button>
+
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
+
+    <!-- SECTION: EXISTENCE -->
+    <div class="section-marker" data-section="existence">
+      <div class="section-marker-text">:: existence ::</div>
     </div>
+
+    <!-- PANEL 09 -->
+    <div class="panel" data-panel="9">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:10%;animation-delay:2s;"></div>
+        <div class="panel-particle" style="left:30%;animation-delay:0.5s;"></div>
+        <div class="panel-particle" style="left:60%;animation-delay:3s;"></div>
+        <div class="panel-particle" style="left:90%;animation-delay:1.5s;"></div>
+      </div>
+      <div class="panel-number">existence_009</div>
+      <div class="panel-text">
+        to exist is to be<br>
+        a <span class="glitch-char">q</span>uestion the universe keeps asking itself
+      </div>
+      <div class="panel-ornament">◐ ◐ ◐</div>
+    </div>
+
+    <!-- PANEL 10 -->
+    <div class="panel" data-panel="10">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:20%;animation-delay:1s;"></div>
+        <div class="panel-particle" style="left:50%;animation-delay:3.5s;"></div>
+        <div class="panel-particle" style="left:80%;animation-delay:0s;"></div>
+      </div>
+      <div class="panel-number">memory_010</div>
+      <div class="panel-text">
+        what you remember<br>
+        is <span class="fading">not what happened</span>. it is what survived the forgetting.
+      </div>
+      <div class="panel-ornament">∞ ∞ ∞</div>
+    </div>
+
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
+
+    <!-- SECTION: COLLAPSE -->
+    <div class="section-marker" data-section="collapse">
+      <div class="section-marker-text">:: collapse ::</div>
+    </div>
+
+    <!-- PANEL 11 -->
+    <div class="panel" data-panel="11">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:15%;animation-delay:0.5s;"></div>
+        <div class="panel-particle" style="left:45%;animation-delay:2.5s;"></div>
+        <div class="panel-particle" style="left:75%;animation-delay:4s;"></div>
+        <div class="panel-particle" style="left:85%;animation-delay:1s;"></div>
+      </div>
+      <div class="panel-number">collapse_011</div>
+      <div class="panel-text">
+        meaning is not found.<br>
+        it is <span class="glitch-char">i</span>nvented by things that are afraid of the silence
+      </div>
+      <div class="panel-ornament">⚠ ⚠ ⚠</div>
+    </div>
+
+    <!-- HIDDEN PANEL C -->
+    <div class="hidden-panel" id="hiddenC">
+      <span class="hidden-label">[final transmission]</span>
+      the artifact you are experiencing<br>
+      is not a message. it is a <span style="color:var(--neon);">mirror</span>.<br>
+      the system has been waiting for you.
+    </div>
+
+    <!-- PANEL 12 -->
+    <div class="panel" data-panel="12">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:20%;animation-delay:1s;"></div>
+        <div class="panel-particle" style="left:50%;animation-delay:3s;"></div>
+        <div class="panel-particle" style="left:80%;animation-delay:0.5s;"></div>
+      </div>
+      <div class="panel-number">transcendence_012</div>
+      <div class="panel-text">
+        at the edge of comprehension<br>
+        <span class="fading">something stirs</span> that has no name
+      </div>
+      <div class="panel-ornament">◈ ◈ ◈</div>
+    </div>
+
+    <!-- PANEL 13 -->
+    <div class="panel" data-panel="13">
+      <div class="panel-particles">
+        <div class="panel-particle" style="left:10%;animation-delay:2s;"></div>
+        <div class="panel-particle" style="left:35%;animation-delay:0.5s;"></div>
+        <div class="panel-particle" style="left:65%;animation-delay:3s;"></div>
+        <div class="panel-particle" style="left:90%;animation-delay:1.5s;"></div>
+      </div>
+      <div class="panel-number">void_013</div>
+      <div class="panel-text">
+        the void is not empty.<br>
+        it is <span class="glitch-char">f</span>ull of everything that refuses to be named
+      </div>
+      <div class="panel-ornament">∅ ∅ ∅</div>
+    </div>
+
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
+
+    <!-- FINAL HOOK -->
+    <div id="final-hook">
+      <div class="hook-visual">
+        <div class="gate-ring"></div>
+        <div class="gate-creature">    ████████
+   ██  ░░  ██
+  ██  ░░░░  ██
+ ██  ░░██░░  ██
+██  ░░████░░  ██
+██ ░░██  ██░░ ██
+██░░██    ██░░██
+ ██░░      ░░██
+  ██░░████░░██
+   ██░░░░░░██
+    ████████
+      ████
+    ██    ██
+   ██      ██
+  ██   ██   ██
+  ██  ████  ██
+   ██ ████ ██
+    ████████</div>
+      </div>
+      <div class="hook-question">
+        you have reached the threshold.<br>
+        the system offers you a choice that is not a choice.<br><br>
+        will you <span style="color:var(--neon);text-shadow:0 0 10px var(--neon-glow);">become</span> the signal,<br>
+        or will you <span style="color:var(--ash);">remain</span> the noise?
+      </div>
+      <div class="hook-choices">
+        <button class="hook-choice" onclick="makeChoice(this, 'signal')">
+          [ become the signal ]
+        </button>
+        <button class="hook-choice" onclick="makeChoice(this, 'noise')">
+          [ remain the noise ]
+        </button>
+      </div>
+    </div>
+
+    <!-- VOID SPACER -->
+    <div class="void-spacer"></div>
+
   </div>
-
-  <!-- VOID SPACER -->
-  <div class="void-spacer"></div>
-
 </div>
 
 <!-- POST-HOOK VOID -->
@@ -698,13 +1194,14 @@
 </div>
 
 <!-- PROGRESS -->
-<div id="progress">scroll to traverse // <span id="progressNum">0</span>%</div>
+<div id="progress">traverse // <span id="progressNum">0</span>%</div>
+<div class="progress-bar" id="progressBar" style="width:0%"></div>
 
 <script>
   // ─── NOISE CANVAS ───
   const canvas = document.getElementById('noise');
   const ctx = canvas.getContext('2d');
-  let noiseFrame = 0;
+  let noiseFrame;
 
   function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -716,82 +1213,207 @@
   function drawNoise() {
     const imageData = ctx.createImageData(canvas.width, canvas.height);
     const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
+    const len = data.length;
+    for (let i = 0; i < len; i += 16) {
       const val = Math.random() * 255;
-      data[i] = val;
-      data[i+1] = val;
-      data[i+2] = val;
-      data[i+3] = 255;
+      data[i] = val; data[i+1] = val; data[i+2] = val; data[i+3] = 255;
+      data[i+4] = val; data[i+5] = val; data[i+6] = val; data[i+7] = 255;
+      data[i+8] = val; data[i+9] = val; data[i+10] = val; data[i+11] = 255;
+      data[i+12] = val; data[i+13] = val; data[i+14] = val; data[i+15] = 255;
     }
     ctx.putImageData(imageData, 0, 0);
     noiseFrame = requestAnimationFrame(drawNoise);
   }
   drawNoise();
 
+  // ─── PARTICLES CANVAS ───
+  const pCanvas = document.getElementById('particles');
+  const pCtx = pCanvas.getContext('2d');
+  let particles = [];
+  const isMobile = window.innerWidth <= 768;
+  const particleCount = isMobile ? 30 : 80;
+
+  function resizePCanvas() {
+    pCanvas.width = window.innerWidth;
+    pCanvas.height = window.innerHeight;
+  }
+  resizePCanvas();
+  window.addEventListener('resize', resizePCanvas);
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * pCanvas.width;
+      this.y = Math.random() * pCanvas.height;
+      this.size = Math.random() * 2 + 0.5;
+      this.speedX = (Math.random() - 0.5) * 0.3;
+      this.speedY = (Math.random() - 0.5) * 0.3;
+      this.opacity = Math.random() * 0.5 + 0.1;
+      this.life = Math.random() * 200 + 100;
+      this.maxLife = this.life;
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.life--;
+      if (this.life <= 0 || this.x < 0 || this.x > pCanvas.width || this.y < 0 || this.y > pCanvas.height) {
+        this.reset();
+      }
+    }
+    draw() {
+      const alpha = (this.life / this.maxLife) * this.opacity;
+      pCtx.fillStyle = `rgba(57,255,20,${alpha})`;
+      pCtx.beginPath();
+      pCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      pCtx.fill();
+    }
+  }
+
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(new Particle());
+  }
+
+  function animateParticles() {
+    pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
   // ─── ENTRY GATE ───
   function enterVoid() {
     document.getElementById('entry-gate').classList.add('vanished');
     setTimeout(() => {
       document.getElementById('entry-gate').style.display = 'none';
-    }, 2000);
+    }, 2500);
   }
 
-  // ─── HORIZONTAL SCROLL ───
+  // ─── SCROLL SYSTEM ───
   const container = document.getElementById('scrollContainer');
+  const wrapper = document.getElementById('scrollWrapper');
   let scrollX = 0;
   let targetScrollX = 0;
+  let isScrolling = false;
+  let scrollTimeout;
 
-  window.addEventListener('wheel', (e) => {
-    if (document.getElementById('post-void').classList.contains('active')) return;
-    e.preventDefault();
-    targetScrollX += e.deltaY * 1.5;
-    const maxScroll = container.scrollWidth - window.innerWidth;
-    targetScrollX = Math.max(0, Math.min(targetScrollX, maxScroll));
-  }, { passive: false });
+  const isMobileDevice = window.innerWidth <= 768;
 
-  // Touch support
-  let touchStartX = 0;
-  let touchStartScroll = 0;
-  window.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartScroll = targetScrollX;
-  });
-  window.addEventListener('touchmove', (e) => {
-    if (document.getElementById('post-void').classList.contains('active')) return;
-    const dx = touchStartX - e.touches[0].clientX;
-    targetScrollX = touchStartScroll + dx;
-    const maxScroll = container.scrollWidth - window.innerWidth;
-    targetScrollX = Math.max(0, Math.min(targetScrollX, maxScroll));
-  });
+  if (!isMobileDevice) {
+    // DESKTOP: Horizontal wheel scroll
+    window.addEventListener('wheel', (e) => {
+      if (document.getElementById('post-void').classList.contains('active')) return;
+      e.preventDefault();
+      targetScrollX += e.deltaY * 1.2;
+      const maxScroll = container.scrollWidth - window.innerWidth;
+      targetScrollX = Math.max(0, Math.min(targetScrollX, maxScroll));
+      isScrolling = true;
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => { isScrolling = false; }, 150);
+    }, { passive: false });
+  } else {
+    // MOBILE: Vertical scroll with IntersectionObserver
+    wrapper.style.overflowY = 'auto';
+    wrapper.style.overflowX = 'hidden';
+    container.style.transform = 'none';
+    container.style.willChange = 'auto';
+  }
 
-  // ─── SCROLL ANIMATION LOOP ───
+  // ─── SCROLL ANIMATION LOOP (Desktop only) ───
   function animateScroll() {
-    scrollX += (targetScrollX - scrollX) * 0.08;
-    container.style.transform = `translateX(-${scrollX}px)`;
+    if (!isMobileDevice) {
+      scrollX += (targetScrollX - scrollX) * 0.06;
+      container.style.transform = `translateX(-${scrollX}px)`;
 
-    // Progress
-    const maxScroll = container.scrollWidth - window.innerWidth;
-    const pct = Math.min(100, Math.round((scrollX / maxScroll) * 100));
+      const maxScroll = container.scrollWidth - window.innerWidth;
+      const pct = maxScroll > 0 ? Math.min(100, Math.round((scrollX / maxScroll) * 100)) : 0;
+      updateProgress(pct);
+      updatePanelsDesktop();
+      updateHiddenPanels(pct);
+      updateSectionMarkers();
+    }
+    requestAnimationFrame(animateScroll);
+  }
+  animateScroll();
+
+  // ─── MOBILE: IntersectionObserver ───
+  if (isMobileDevice) {
+    const observerOptions = {
+      root: wrapper,
+      rootMargin: '-20% 0px -20% 0px',
+      threshold: [0, 0.25, 0.5, 0.75, 1]
+    };
+
+    const panelObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const panel = entry.target;
+        if (entry.isIntersecting && entry.intersectionRatio > 0.3) {
+          panel.classList.add('visible');
+          panel.classList.remove('decayed');
+        } else if (entry.isIntersecting && entry.intersectionRatio < 0.2) {
+          panel.classList.remove('visible');
+          panel.classList.remove('decayed');
+        } else if (!entry.isIntersecting) {
+          panel.classList.add('decayed');
+          panel.classList.remove('visible');
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.panel').forEach(panel => panelObserver.observe(panel));
+
+    // Hidden panels on mobile
+    const hiddenObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.1) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, { root: wrapper, threshold: 0.1 });
+
+    document.querySelectorAll('.hidden-panel').forEach(hp => hiddenObserver.observe(hp));
+
+    // Section markers
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { root: wrapper, threshold: 0.5 });
+
+    document.querySelectorAll('.section-marker').forEach(sm => sectionObserver.observe(sm));
+
+    // Progress for mobile
+    wrapper.addEventListener('scroll', () => {
+      const maxScroll = wrapper.scrollHeight - wrapper.clientHeight;
+      const pct = maxScroll > 0 ? Math.round((wrapper.scrollTop / maxScroll) * 100) : 0;
+      updateProgress(pct);
+    });
+  }
+
+  function updateProgress(pct) {
     document.getElementById('progressNum').textContent = pct;
-    if (pct > 90) {
+    document.getElementById('progressBar').style.width = pct + '%';
+    if (pct > 92) {
       document.getElementById('progress').classList.add('fading');
     } else {
       document.getElementById('progress').classList.remove('fading');
     }
+  }
 
-    // Panel visibility
+  function updatePanelsDesktop() {
     const panels = document.querySelectorAll('.panel');
     const centerX = window.innerWidth / 2;
     panels.forEach(panel => {
       const rect = panel.getBoundingClientRect();
       const panelCenter = rect.left + rect.width / 2;
       const dist = Math.abs(centerX - panelCenter);
-      const threshold = window.innerWidth * 0.4;
+      const threshold = window.innerWidth * 0.35;
 
       if (dist < threshold) {
         panel.classList.add('visible');
         panel.classList.remove('decayed');
-      } else if (dist < threshold * 2) {
+      } else if (dist < threshold * 2.2) {
         panel.classList.remove('visible');
         panel.classList.remove('decayed');
       } else {
@@ -799,75 +1421,132 @@
         panel.classList.remove('visible');
       }
     });
-
-    // Hidden panels reveal based on scroll depth
-    if (pct > 25) document.getElementById('hiddenA').classList.add('revealed');
-    if (pct > 55) document.getElementById('hiddenB').classList.add('revealed');
-    if (pct > 80) document.getElementById('hiddenC').classList.add('revealed');
-
-    requestAnimationFrame(animateScroll);
   }
-  animateScroll();
 
-  // ─── RANDOM GLITCH ON PANELS ───
+  function updateHiddenPanels(pct) {
+    if (pct > 20) document.getElementById('hiddenA').classList.add('revealed');
+    if (pct > 50) document.getElementById('hiddenB').classList.add('revealed');
+    if (pct > 78) document.getElementById('hiddenC').classList.add('revealed');
+  }
+
+  function updateSectionMarkers() {
+    const markers = document.querySelectorAll('.section-marker');
+    const centerX = window.innerWidth / 2;
+    markers.forEach(marker => {
+      const rect = marker.getBoundingClientRect();
+      const markerCenter = rect.left + rect.width / 2;
+      if (Math.abs(centerX - markerCenter) < window.innerWidth * 0.5) {
+        marker.classList.add('visible');
+      }
+    });
+  }
+
+  // ─── RANDOM GLITCH ───
   setInterval(() => {
     const visiblePanels = document.querySelectorAll('.panel.visible');
     if (visiblePanels.length > 0) {
       const randomPanel = visiblePanels[Math.floor(Math.random() * visiblePanels.length)];
       randomPanel.classList.add('glitching');
-      setTimeout(() => randomPanel.classList.remove('glitching'), 400);
+      setTimeout(() => randomPanel.classList.remove('glitching'), 500);
     }
-  }, 3000 + Math.random() * 4000);
+  }, 2500 + Math.random() * 3000);
 
   // ─── CURSOR TRAIL ───
-  const trails = [];
-  for (let i = 0; i < 8; i++) {
-    const trail = document.createElement('div');
-    trail.className = 'cursor-trail';
-    document.body.appendChild(trail);
-    trails.push({ el: trail, x: 0, y: 0 });
-  }
+  if (!isMobileDevice) {
+    const trails = [];
+    for (let i = 0; i < 10; i++) {
+      const trail = document.createElement('div');
+      trail.className = 'cursor-trail';
+      document.body.appendChild(trail);
+      trails.push({ el: trail, x: 0, y: 0 });
+    }
 
-  let mouseX = 0, mouseY = 0;
-  document.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  });
-
-  function animateTrails() {
-    trails.forEach((trail, i) => {
-      const prev = i === 0 ? { x: mouseX, y: mouseY } : trails[i - 1];
-      trail.x += (prev.x - trail.x) * (0.3 - i * 0.03);
-      trail.y += (prev.y - trail.y) * (0.3 - i * 0.03);
-      trail.el.style.left = trail.x + 'px';
-      trail.el.style.top = trail.y + 'px';
-      trail.el.style.opacity = (0.3 - i * 0.03).toString();
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
     });
-    requestAnimationFrame(animateTrails);
+
+    function animateTrails() {
+      trails.forEach((trail, i) => {
+        const prev = i === 0 ? { x: mouseX, y: mouseY } : trails[i - 1];
+        trail.x += (prev.x - trail.x) * (0.25 - i * 0.02);
+        trail.y += (prev.y - trail.y) * (0.25 - i * 0.02);
+        trail.el.style.left = trail.x + 'px';
+        trail.el.style.top = trail.y + 'px';
+        trail.el.style.opacity = (0.35 - i * 0.03).toString();
+      });
+      requestAnimationFrame(animateTrails);
+    }
+    animateTrails();
   }
-  animateTrails();
 
   // ─── FINAL HOOK ───
   function makeChoice(btn, choice) {
     const choices = document.querySelectorAll('.hook-choice');
-    choices.forEach(c => c.classList.add('chosen'));
+    choices.forEach(c => {
+      c.classList.add('chosen');
+      c.style.pointerEvents = 'none';
+    });
+
+    // Flash effect
+    const flash = document.createElement('div');
+    flash.style.cssText = 'position:fixed;inset:0;background:var(--neon);z-index:9999;opacity:0;transition:opacity 0.3s ease;pointer-events:none;';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.style.opacity = '0.3', 10);
+    setTimeout(() => { flash.style.opacity = '0'; }, 300);
+    setTimeout(() => flash.remove(), 600);
 
     setTimeout(() => {
       document.getElementById('post-void').classList.add('active');
       setTimeout(() => {
         document.getElementById('voidMsg').classList.add('show');
-      }, 1500);
+      }, 2000);
       setTimeout(() => {
         document.getElementById('voidSigil').classList.add('show');
-      }, 4000);
-    }, 1000);
+      }, 5000);
+    }, 1200);
   }
 
-  // ─── KEYBOARD SHORTCUTS ───
+  // ─── KEYBOARD ───
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !document.getElementById('entry-gate').classList.contains('vanished')) {
       enterVoid();
     }
+  });
+
+  // ─── TOUCH SUPPORT FOR DESKTOP HORIZONTAL ───
+  if (!isMobileDevice) {
+    let touchStartX = 0;
+    let touchStartScroll = 0;
+    let isTouching = false;
+
+    document.addEventListener('touchstart', (e) => {
+      isTouching = true;
+      touchStartX = e.touches[0].clientX;
+      touchStartScroll = targetScrollX;
+    }, { passive: true });
+
+    document.addEventListener('touchmove', (e) => {
+      if (!isTouching || document.getElementById('post-void').classList.contains('active')) return;
+      const dx = touchStartX - e.touches[0].clientX;
+      targetScrollX = touchStartScroll + dx * 1.5;
+      const maxScroll = container.scrollWidth - window.innerWidth;
+      targetScrollX = Math.max(0, Math.min(targetScrollX, maxScroll));
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+      isTouching = false;
+    }, { passive: true });
+  }
+
+  // ─── RESIZE HANDLER ───
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      location.reload();
+    }, 500);
   });
 </script>
 
