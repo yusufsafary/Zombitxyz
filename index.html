@@ -715,6 +715,46 @@
   .void-x-link.show { opacity:1; }
   .void-x-link:hover { color:var(--neon);border-color:rgba(57,255,20,0.5); }
 
+  /* ─── ORYNTH BADGE ─── */
+  .orynth-badge-wrap {
+    margin-top: 2.5rem;
+    opacity: 0;
+    transition: opacity 10s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .orynth-badge-wrap.show { opacity: 1; }
+
+  .orynth-badge-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.45rem;
+    letter-spacing: 0.4em;
+    color: rgba(57,255,20,0.2);
+    text-transform: uppercase;
+  }
+
+  .orynth-badge-link {
+    display: block;
+    opacity: 0.35;
+    transition: opacity 0.6s ease, filter 0.6s ease, transform 0.4s ease;
+    filter: grayscale(0.8) brightness(0.7) sepia(0.2);
+    line-height: 0;
+  }
+
+  .orynth-badge-link:hover {
+    opacity: 0.85;
+    filter: grayscale(0) brightness(1) sepia(0);
+    transform: translateY(-2px);
+  }
+
+  .orynth-badge-link img {
+    display: block;
+    width: 180px;
+    height: auto;
+  }
+
   /* ─── PROGRESS ─── */
   #progress { position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:10;font-size:0.5rem;color:var(--ash);letter-spacing:0.3em;opacity:0.4;transition:opacity 0.8s ease;pointer-events:none; }
   #progress.fading { opacity:0; }
@@ -773,6 +813,7 @@
     .progress-bar{height:2px;}
     #fear-meter{display:none;}
     .gate-x-link{letter-spacing:0.15em;padding:0.75rem 1.2rem;}
+    .orynth-badge-link img { width: 140px; }
   }
 
   @media(max-width:380px){
@@ -1233,6 +1274,14 @@
     <svg style="width:12px;height:12px;fill:currentColor;" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.629L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
     continue the transmission — follow $Z0MBIT
   </a>
+
+  <!-- ORYNTH BADGE -->
+  <div class="orynth-badge-wrap" id="orynthBadge">
+    <div class="orynth-badge-label">indexed by</div>
+    <a class="orynth-badge-link" href="https://orynth.dev/projects/z0mbit" target="_blank" rel="noopener">
+      <img src="https://orynth.dev/api/badge/z0mbit?theme=light&style=default" alt="Featured on Orynth" width="260" height="80" />
+    </a>
+  </div>
 </div>
 
 <div id="progress">traverse // <span id="progressNum">0</span>%</div>
@@ -1598,6 +1647,8 @@ function makeChoice(btn,choice){
     setTimeout(()=>document.getElementById('voidMsg').classList.add('show'),2000);
     setTimeout(()=>document.getElementById('voidSigil').classList.add('show'),5000);
     setTimeout(()=>document.getElementById('voidX').classList.add('show'),9000);
+    // Orynth badge fades in last — a quiet closing credit
+    setTimeout(()=>document.getElementById('orynthBadge').classList.add('show'),13000);
   },1200);
 }
 
