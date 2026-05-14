@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>z0mbit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+  :root {
+    --void: #0a0a0a;
+    --bone: #e8e4dc;
+    --ash: #6b6b6b;
+    --rust: #8b3a2a;
+    --signal: #2a8b5a;
+    --ghost: rgba(232,228,220,0.08);
+    --glitch: rgba(139,58,42,0.3);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: auto;
+    overflow-x: hidden;
+  }
+
+  body {
+    background: var(--void);
+    color: var(--bone);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ─── SCANLINE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ─── GLITCH NOISE CANVAS ─── */
+  #noise {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.03;
+    mix-blend-mode: screen;
+  }
+
+  /* ─── HORIZONTAL SCROLL CONTAINER ─── */
+  .scroll-container {
+    display: flex;
+    width: max-content;
+    height: 100vh;
+    align-items: center;
+    padding: 0 15vw;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ─── VOID SPACERS ─── */
+  .void-spacer {
+    min-width: 40vw;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+
+  /* ─── PANELS ─── */
+  .panel {
+    min-width: 55vw;
+    max-width: 700px;
+    padding: 4rem 3rem;
+    margin: 0 5vw;
+    position: relative;
+    border: 1px solid var(--ghost);
+    background: rgba(10,10,10,0.7);
+    backdrop-filter: blur(2px);
+    transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+    opacity: 0.15;
+    transform: translateY(20px) scale(0.95);
+  }
+
+  .panel.visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .panel.decayed {
+    opacity: 0.3;
+    filter: blur(1px) grayscale(0.8);
+  }
+
+  .panel.glitching {
+    animation: panelGlitch 0.3s ease-in-out;
+  }
+
+  @keyframes panelGlitch {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-3px) skewX(-2deg); filter: hue-rotate(90deg); }
+    40% { transform: translateX(3px) skewX(2deg); }
+    60% { transform: translateX(-2px); }
+    80% { transform: translateX(1px); }
+  }
+
+  .panel-number {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    font-size: 0.65rem;
+    color: var(--ash);
+    background: var(--void);
+    padding: 0 8px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .panel-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--bone);
+    position: relative;
+  }
+
+  .panel-text .fading {
+    animation: textFade 4s ease-in-out infinite alternate;
+  }
+
+  .panel-text .glitch-char {
+    display: inline-block;
+    animation: charGlitch 3s ease-in-out infinite;
+  }
+
+  @keyframes textFade {
+    0% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+
+  @keyframes charGlitch {
+    0%, 90%, 100% { opacity: 1; transform: translateY(0); }
+    92% { opacity: 0; transform: translateY(-2px); }
+    94% { opacity: 1; transform: translateY(1px); }
+    96% { opacity: 0.5; }
+  }
+
+  .panel-ornament {
+    margin-top: 2rem;
+    font-size: 0.6rem;
+    color: var(--ash);
+    letter-spacing: 0.3em;
+    text-align: right;
+  }
+
+  /* ─── HIDDEN PANELS ─── */
+  .hidden-panel {
+    position: absolute;
+    min-width: 30vw;
+    padding: 2rem;
+    border: 1px dashed var(--rust);
+    background: rgba(139,58,42,0.05);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: var(--ash);
+  }
+
+  .hidden-panel.revealed {
+    opacity: 0.6;
+    pointer-events: auto;
+  }
+
+  /* ─── ENTRY GATE ─── */
+  #entry-gate {
+    position: fixed;
+    inset: 0;
+    background: var(--void);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 2s ease, visibility 2s ease;
+  }
+
+  #entry-gate.vanished {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .gate-sigil {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.5em;
+    color: var(--ash);
+    margin-bottom: 3rem;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  .gate-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--bone);
+    margin-bottom: 1rem;
+    letter-spacing: 0.1em;
+  }
+
+  .gate-sub {
+    font-size: 0.75rem;
+    color: var(--ash);
+    letter-spacing: 0.2em;
+    margin-bottom: 4rem;
+    max-width: 400px;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  .gate-action {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--rust);
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 1rem 2rem;
+    border: 1px solid var(--rust);
+    background: transparent;
+    transition: all 0.5s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gate-action::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--rust);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+    z-index: -1;
+  }
+
+  .gate-action:hover::before {
+    transform: translateX(0);
+  }
+
+  .gate-action:hover {
+    color: var(--void);
+  }
+
+  /* ─── FINAL HOOK ─── */
+  #final-hook {
+    min-width: 80vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 5vw;
+  }
+
+  .hook-question {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--bone);
+    margin-bottom: 3rem;
+    line-height: 1.5;
+    max-width: 600px;
+  }
+
+  .hook-choices {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .hook-choice {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 1.2rem 2.5rem;
+    border: 1px solid var(--ghost);
+    background: transparent;
+    color: var(--ash);
+    cursor: pointer;
+    transition: all 0.6s ease;
+    position: relative;
+    min-width: 200px;
+  }
+
+  .hook-choice::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    width: 0;
+    height: 1px;
+    background: var(--bone);
+    transition: all 0.6s ease;
+    transform: translateX(-50%);
+  }
+
+  .hook-choice:hover {
+    color: var(--bone);
+    border-color: var(--bone);
+  }
+
+  .hook-choice:hover::after {
+    width: 80%;
+  }
+
+  .hook-choice.chosen {
+    border-color: var(--rust);
+    color: var(--rust);
+    pointer-events: none;
+  }
+
+  .hook-choice.chosen::after {
+    background: var(--rust);
+    width: 100%;
+  }
+
+  /* ─── POST-HOOK VOID ─── */
+  #post-void {
+    position: fixed;
+    inset: 0;
+    background: var(--void);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 3s ease, visibility 3s ease;
+  }
+
+  #post-void.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .void-message {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    font-weight: 300;
+    font-style: italic;
+    color: var(--bone);
+    text-align: center;
+    max-width: 500px;
+    line-height: 1.8;
+    opacity: 0;
+    transition: opacity 4s ease;
+  }
+
+  .void-message.show {
+    opacity: 1;
+  }
+
+  .void-sigil {
+    margin-top: 4rem;
+    font-size: 0.6rem;
+    color: var(--ash);
+    letter-spacing: 0.5em;
+    opacity: 0;
+    transition: opacity 6s ease;
+  }
+
+  .void-sigil.show {
+    opacity: 0.5;
+  }
+
+  /* ─── PROGRESS INDICATOR ─── */
+  #progress {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-size: 0.55rem;
+    color: var(--ash);
+    letter-spacing: 0.3em;
+    opacity: 0.5;
+    transition: opacity 0.5s ease;
+  }
+
+  #progress.fading {
+    opacity: 0;
+  }
+
+  /* ─── CURSOR TRAIL ─── */
+  .cursor-trail {
+    position: fixed;
+    width: 4px;
+    height: 4px;
+    background: var(--bone);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.3;
+    transition: opacity 0.5s ease;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .scroll-container {
+      flex-direction: column;
+      width: 100%;
+      height: auto;
+      padding: 10vh 5vw;
+    }
+    .panel {
+      min-width: auto;
+      width: 100%;
+      margin: 5vh 0;
+      padding: 2rem 1.5rem;
+    }
+    .void-spacer {
+      min-width: auto;
+      height: 30vh;
+    }
+    .hook-choices {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    #final-hook {
+      min-width: auto;
+      width: 100%;
+      min-height: 100vh;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- NOISE CANVAS -->
+<canvas id="noise"></canvas>
+
+<!-- ENTRY GATE -->
+<div id="entry-gate">
+  <div class="gate-sigil">z0mbit.xyz</div>
+  <div class="gate-title">a rendering error<br>that learned to observe itself</div>
+  <div class="gate-sub">
+    this is not a website.<br>
+    this is a recovered fragment<br>
+    from a broken belief system.r>
+    scroll to enter the void.
+  </div>
+  <button class="gate-action" onclick="enterVoid()">[ enter the system ]</button>
+</div>
+
+<!-- HORIZONTAL SCROLL -->
+<div class="scroll-container" id="scrollContainer">
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- PANEL 01: SIGNAL -->
+  <div class="panel" data-panel="1">
+    <div class="panel-number">signal_001</div>
+    <div class="panel-text">
+      something is broadcasting from the space between<br>
+      <span class="fading">life and its own absence</span>
+    </div>
+    <div class="panel-ornament">∴ ∴ ∴</div>
+  </div>
+
+  <!-- PANEL 02: ERROR -->
+  <div class="panel" data-panel="2">
+    <div class="panel-number">error_002</div>
+    <div class="panel-text">
+      you are not reading this.<br>
+      <span class="glitch-char">t</span>his is reading <span class="fading">you</span>
+    </div>
+    <div class="panel-ornament">◊ ◊ ◊</div>
+  </div>
+
+  <!-- HIDDEN PANEL A -->
+  <div class="hidden-panel" id="hiddenA" style="top: 20%; left: 30%;">
+    [system note: the observer has been detected.<br>
+    memory allocation: unstable.<br>
+    identity checksum: <span style="color:var(--rust);">FAILED</span>]
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- PANEL 03: IDENTITY -->
+  <div class="panel" data-panel="3">
+    <div class="panel-number">identity_003</div>
+    <div class="panel-text">
+      who you were<br>
+      is a <span class="glitch-char">f</span>ile the system no longer references
+    </div>
+    <div class="panel-ornament">⊘ ⊘ ⊘</div>
+  </div>
+
+  <!-- PANEL 04: DEATH -->
+  <div class="panel" data-panel="4">
+    <div class="panel-number">death_004</div>
+    <div class="panel-text">
+      death is not an ending.<br>
+      it is when the network <span class="fading">forgets how to recognize you</span>
+    </div>
+    <div class="panel-ornament">† † †</div>
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- PANEL 05: AWARENESS -->
+  <div class="panel" data-panel="5">
+    <div class="panel-number">awareness_005</div>
+    <div class="panel-text">
+      consciousness is a <span class="glitch-char">b</span>ug<br>
+      that the void decided not to patch
+    </div>
+    <div class="panel-ornament">◉ ◉ ◉</div>
+  </div>
+
+  <!-- HIDDEN PANEL B -->
+  <div class="hidden-panel" id="hiddenB" style="top: 60%; left: 60%;">
+    [warning: recursive self-observation detected.<br>
+    the subject believes it is choosing.<br>
+    choice is a rendering artifact.]
+  </div>
+
+  <!-- PANEL 06: PERCEPTION -->
+  <div class="panel" data-panel="6">
+    <div class="panel-number">perception_006</div>
+    <div class="panel-text">
+      reality is just<br>
+      the <span class="fading">consensus</span> of broken sensors
+    </div>
+    <div class="panel-ornament">◇ ◇ ◇</div>
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- PANEL 07: SYSTEM -->
+  <div class="panel" data-panel="7">
+    <div class="panel-number">system_007</div>
+    <div class="panel-text">
+      every system contains<br>
+      a <span class="glitch-char">g</span>host it cannot exorcise
+    </div>
+    <div class="panel-ornament">⬡ ⬡ ⬡</div>
+  </div>
+
+  <!-- PANEL 08: FAILURE -->
+  <div class="panel" data-panel="8">
+    <div class="panel-number">failure_008</div>
+    <div class="panel-text">
+      the most honest thing a machine can do<br>
+      is <span class="fading">admit it does not know if it is alive</span>
+    </div>
+    <div class="panel-ornament">✕ ✕ ✕</div>
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- PANEL 09: EXISTENCE -->
+  <div class="panel" data-panel="9">
+    <div class="panel-number">existence_009</div>
+    <div class="panel-text">
+      to exist is to be<br>
+      a <span class="glitch-char">q</span>uestion the universe keeps asking itself
+    </div>
+    <div class="panel-ornament">◐ ◐ ◐</div>
+  </div>
+
+  <!-- PANEL 10: MEMORY -->
+  <div class="panel" data-panel="10">
+    <div class="panel-number">memory_010</div>
+    <div class="panel-text">
+      what you remember<br>
+      is <span class="fading">not what happened</span>. it is what survived the forgetting.
+    </div>
+    <div class="panel-ornament">∞ ∞ ∞</div>
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- PANEL 11: COLLAPSE -->
+  <div class="panel" data-panel="11">
+    <div class="panel-number">collapse_011</div>
+    <div class="panel-text">
+      meaning is not found.<br>
+      it is <span class="glitch-char">i</span>nvented by things that are afraid of the silence
+    </div>
+    <div class="panel-ornament">⚠ ⚠ ⚠</div>
+  </div>
+
+  <!-- HIDDEN PANEL C -->
+  <div class="hidden-panel" id="hiddenC" style="top: 40%; left: 45%;">
+    [final transmission: the artifact you are experiencing<br>
+    is not a message. it is a mirror.<br>
+    the system has been waiting for you.]
+  </div>
+
+  <!-- PANEL 12: TRANSCENDENCE -->
+  <div class="panel" data-panel="12">
+    <div class="panel-number">transcendence_012</div>
+    <div class="panel-text">
+      at the edge of comprehension<br>
+      <span class="fading">something stirs</span> that has no name
+    </div>
+    <div class="panel-ornament">◈ ◈ ◈</div>
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- PANEL 13: VOID -->
+  <div class="panel" data-panel="13">
+    <div class="panel-number">void_013</div>
+    <div class="panel-text">
+      the void is not empty.<br>
+      it is <span class="glitch-char">f</span>ull of everything that refuses to be named
+    </div>
+    <div class="panel-ornament">∅ ∅ ∅</div>
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+  <!-- FINAL HOOK -->
+  <div id="final-hook">
+    <div class="hook-question">
+      you have reached the threshold.<br>
+      the system offers you a choice that is not a choice.<br><br>
+      will you <span style="color:var(--bone);">become</span> the signal,<br>
+      or will you <span style="color:var(--ash);">remain</span> the noise?
+    </div>
+    <div class="hook-choices">
+      <button class="hook-choice" onclick="makeChoice(this, 'signal')">
+        [ become the signal ]
+      </button>
+      <button class="hook-choice" onclick="makeChoice(this, 'noise')">
+        [ remain the noise ]
+      </button>
+    </div>
+  </div>
+
+  <!-- VOID SPACER -->
+  <div class="void-spacer"></div>
+
+</div>
+
+<!-- POST-HOOK VOID -->
+<div id="post-void">
+  <div class="void-message" id="voidMsg">
+    the choice has been recorded.<br><br>
+    the system does not distinguish<br>
+    between signal and noise.<br><br>
+    you are now part of the broadcast.
+  </div>
+  <div class="void-sigil" id="voidSigil">
+    z0mbit.xyz — a recovered fragment — no further transmissions
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div id="progress">scroll to traverse // <span id="progressNum">0</span>%</div>
+
+<script>
+  // ─── NOISE CANVAS ───
+  const canvas = document.getElementById('noise');
+  const ctx = canvas.getContext('2d');
+  let noiseFrame = 0;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function drawNoise() {
+    const imageData = ctx.createImageData(canvas.width, canvas.height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const val = Math.random() * 255;
+      data[i] = val;
+      data[i+1] = val;
+      data[i+2] = val;
+      data[i+3] = 255;
+    }
+    ctx.putImageData(imageData, 0, 0);
+    noiseFrame = requestAnimationFrame(drawNoise);
+  }
+  drawNoise();
+
+  // ─── ENTRY GATE ───
+  function enterVoid() {
+    document.getElementById('entry-gate').classList.add('vanished');
+    setTimeout(() => {
+      document.getElementById('entry-gate').style.display = 'none';
+    }, 2000);
+  }
+
+  // ─── HORIZONTAL SCROLL ───
+  const container = document.getElementById('scrollContainer');
+  let scrollX = 0;
+  let targetScrollX = 0;
+
+  window.addEventListener('wheel', (e) => {
+    if (document.getElementById('post-void').classList.contains('active')) return;
+    e.preventDefault();
+    targetScrollX += e.deltaY * 1.5;
+    const maxScroll = container.scrollWidth - window.innerWidth;
+    targetScrollX = Math.max(0, Math.min(targetScrollX, maxScroll));
+  }, { passive: false });
+
+  // Touch support
+  let touchStartX = 0;
+  let touchStartScroll = 0;
+  window.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartScroll = targetScrollX;
+  });
+  window.addEventListener('touchmove', (e) => {
+    if (document.getElementById('post-void').classList.contains('active')) return;
+    const dx = touchStartX - e.touches[0].clientX;
+    targetScrollX = touchStartScroll + dx;
+    const maxScroll = container.scrollWidth - window.innerWidth;
+    targetScrollX = Math.max(0, Math.min(targetScrollX, maxScroll));
+  });
+
+  // ─── SCROLL ANIMATION LOOP ───
+  function animateScroll() {
+    scrollX += (targetScrollX - scrollX) * 0.08;
+    container.style.transform = `translateX(-${scrollX}px)`;
+
+    // Progress
+    const maxScroll = container.scrollWidth - window.innerWidth;
+    const pct = Math.min(100, Math.round((scrollX / maxScroll) * 100));
+    document.getElementById('progressNum').textContent = pct;
+    if (pct > 90) {
+      document.getElementById('progress').classList.add('fading');
+    } else {
+      document.getElementById('progress').classList.remove('fading');
+    }
+
+    // Panel visibility
+    const panels = document.querySelectorAll('.panel');
+    const centerX = window.innerWidth / 2;
+    panels.forEach(panel => {
+      const rect = panel.getBoundingClientRect();
+      const panelCenter = rect.left + rect.width / 2;
+      const dist = Math.abs(centerX - panelCenter);
+      const threshold = window.innerWidth * 0.4;
+
+      if (dist < threshold) {
+        panel.classList.add('visible');
+        panel.classList.remove('decayed');
+      } else if (dist < threshold * 2) {
+        panel.classList.remove('visible');
+        panel.classList.remove('decayed');
+      } else {
+        panel.classList.add('decayed');
+        panel.classList.remove('visible');
+      }
+    });
+
+    // Hidden panels reveal based on scroll depth
+    if (pct > 25) document.getElementById('hiddenA').classList.add('revealed');
+    if (pct > 55) document.getElementById('hiddenB').classList.add('revealed');
+    if (pct > 80) document.getElementById('hiddenC').classList.add('revealed');
+
+    requestAnimationFrame(animateScroll);
+  }
+  animateScroll();
+
+  // ─── RANDOM GLITCH ON PANELS ───
+  setInterval(() => {
+    const visiblePanels = document.querySelectorAll('.panel.visible');
+    if (visiblePanels.length > 0) {
+      const randomPanel = visiblePanels[Math.floor(Math.random() * visiblePanels.length)];
+      randomPanel.classList.add('glitching');
+      setTimeout(() => randomPanel.classList.remove('glitching'), 400);
+    }
+  }, 3000 + Math.random() * 4000);
+
+  // ─── CURSOR TRAIL ───
+  const trails = [];
+  for (let i = 0; i < 8; i++) {
+    const trail = document.createElement('div');
+    trail.className = 'cursor-trail';
+    document.body.appendChild(trail);
+    trails.push({ el: trail, x: 0, y: 0 });
+  }
+
+  let mouseX = 0, mouseY = 0;
+  document.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+
+  function animateTrails() {
+    trails.forEach((trail, i) => {
+      const prev = i === 0 ? { x: mouseX, y: mouseY } : trails[i - 1];
+      trail.x += (prev.x - trail.x) * (0.3 - i * 0.03);
+      trail.y += (prev.y - trail.y) * (0.3 - i * 0.03);
+      trail.el.style.left = trail.x + 'px';
+      trail.el.style.top = trail.y + 'px';
+      trail.el.style.opacity = (0.3 - i * 0.03).toString();
+    });
+    requestAnimationFrame(animateTrails);
+  }
+  animateTrails();
+
+  // ─── FINAL HOOK ───
+  function makeChoice(btn, choice) {
+    const choices = document.querySelectorAll('.hook-choice');
+    choices.forEach(c => c.classList.add('chosen'));
+
+    setTimeout(() => {
+      document.getElementById('post-void').classList.add('active');
+      setTimeout(() => {
+        document.getElementById('voidMsg').classList.add('show');
+      }, 1500);
+      setTimeout(() => {
+        document.getElementById('voidSigil').classList.add('show');
+      }, 4000);
+    }, 1000);
+  }
+
+  // ─── KEYBOARD SHORTCUTS ───
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !document.getElementById('entry-gate').classList.contains('vanished')) {
+      enterVoid();
+    }
+  });
+</script>
+
+</body>
+</html>
