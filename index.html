@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <title>ZOMBIT FARMER</title>
-    <link rel="icon" type="image/png" href="/assets/ui/littlefarmers.png?v=2" />
+    <link rel="icon" type="image/png" href="/assets/ui/zombitfarmers.png?v=2" />
     <style>
       @font-face {
         font-family: 'CuteFantasy';
@@ -68,13 +68,23 @@
       #introGateErr { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; color: #ff9a9a; min-height: 18px; }
 
     </style>
+    <script src="/assets/wallet-multi.js"></script>
     <script type="module" crossorigin src="/assets/index-33voUBuI.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-BMnwByVy.css">
+    <style>
+      #zfSiteNav { position: fixed; top: 10px; left: 10px; z-index: 100010; display: flex; gap: 6px; font-family: 'Segoe UI', system-ui, sans-serif; }
+      #zfSiteNav a { font-size: 12px; font-weight: 600; color: #fff3e0; padding: 6px 10px; border-radius: 8px; border: 1px solid #5b3a1c; background: rgba(20,14,8,.72); text-decoration: none; }
+      #zfSiteNav a:hover { background: rgba(90,52,24,.8); }
+    </style>
   </head>
   <body>
+    <div id="zfSiteNav">
+      <a href="/about.html">About</a>
+      <a href="/how-to-play.html">How to Play</a>
+    </div>
     
     <div id="lfPreloader">
-      <img src="/assets/ui/littlefarmers.png" alt="ZOMBIT FARMER">
+      <img src="/assets/ui/zombitfarmers.png" alt="ZOMBIT FARMER">
       <div id="lfPreText">Loading your farm…</div>
       <div id="lfPreTrack" class="indet"><div id="lfPreBar"></div></div>
     </div>
@@ -96,7 +106,7 @@
         <label class="isp-row"><span>🔊 Video Sound</span><input type="checkbox" id="introSndChk"></label>
       </div>
       <div id="introCenter">
-        <img id="introLogo" src="/assets/ui/littlefarmers.png" alt="ZOMBIT FARMER">
+        <img id="introLogo" src="/assets/ui/zombitfarmers.png" alt="ZOMBIT FARMER">
         <button id="introPlay">▶ Play</button>
         <div id="introCA" title="Click to copy contract address" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:8px 14px;color:#fff;font-family:monospace;font-size:13px;font-weight:700;max-width:92vw;backdrop-filter:blur(4px)"><span style="opacity:.8">CA:</span><span style="word-break:break-all">DKG7jxLMg5Mz1Fk95QLcecbMHdgYQULwaK8ZFamFpump</span><span style="opacity:.7">📋</span><span id="introCACopied" style="color:#8fe0a0;opacity:0;transition:opacity .3s;font-size:12px">Copied!</span></div>
         <div id="introGate">

@@ -1,0 +1,225 @@
+/* Shared theme for Zombit Farmers static pages (About, How to Play) */
+@font-face {
+  font-family: 'CuteFantasy';
+  src: url('/assets/fonts/CuteFantasy-5x9.ttf') format('truetype');
+  font-display: block;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #0a1a11;
+  color: #fff8e6;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(ellipse at top, #1e3a26 0%, #0a1a11 60%);
+}
+
+a { color: #ffd24a; text-decoration: none; }
+a:hover { color: #ffe08a; text-decoration: underline; }
+
+.zf-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 22px;
+  background: rgba(10, 20, 17, 0.92);
+  border-bottom: 2px solid #5a3418;
+  backdrop-filter: blur(4px);
+}
+
+.zf-topbar img {
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+}
+
+.zf-topbar .zf-title {
+  font-family: 'CuteFantasy', 'Segoe UI', system-ui, sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.5px;
+  color: #ffe08a;
+  text-shadow: 0 2px 4px rgba(0,0,0,.6);
+}
+
+.zf-topbar nav {
+  display: flex;
+  gap: 14px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.zf-topbar nav a {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff8e6;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 2px solid #5a3418;
+  background: rgba(90, 52, 24, 0.35);
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.zf-topbar nav a:hover {
+  text-decoration: none;
+  background: rgba(140, 90, 52, 0.55);
+  border-color: #b06a44;
+  transform: translateY(-1px);
+}
+
+.zf-topbar nav a.zf-play {
+  background: linear-gradient(180deg, #cdf77c, #7cbf3e);
+  color: #20340f;
+  border-color: #4f7d22;
+  box-shadow: 0 3px 0 #4f7d22;
+}
+
+.zf-topbar nav a.zf-play:hover {
+  background: linear-gradient(180deg, #d8ff92, #8bd450);
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #4f7d22;
+}
+
+.zf-wrap {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 48px 24px 90px;
+}
+
+.zf-hero {
+  text-align: center;
+  margin-bottom: 44px;
+}
+
+.zf-hero h1 {
+  font-family: 'CuteFantasy', 'Segoe UI', system-ui, sans-serif;
+  font-size: 34px;
+  color: #ffe08a;
+  text-shadow: 0 3px 6px rgba(0,0,0,.6);
+  margin: 0 0 10px;
+  letter-spacing: 0.5px;
+}
+
+.zf-hero p {
+  font-size: 16px;
+  color: #e8b582;
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.zf-panel {
+  background: rgba(20, 14, 8, 0.72);
+  border: 2px solid #5a3418;
+  border-radius: 16px;
+  padding: 26px 28px;
+  margin-bottom: 26px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+}
+
+.zf-panel h2 {
+  font-family: 'CuteFantasy', 'Segoe UI', system-ui, sans-serif;
+  font-size: 20px;
+  color: #ffcf6a;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.zf-panel p, .zf-panel li {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #fff8e6;
+}
+
+.zf-panel ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.zf-panel li { margin-bottom: 8px; }
+
+.zf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.zf-card {
+  background: rgba(90, 52, 24, 0.25);
+  border: 1px solid #6a4424;
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.zf-card .zf-card-icon { font-size: 22px; margin-bottom: 8px; display: block; }
+
+.zf-card h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+  color: #ffd98a;
+}
+
+.zf-card p { margin: 0; font-size: 13.5px; color: #d9c6a8; }
+
+.zf-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: step;
+}
+
+.zf-steps li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 40px;
+  margin-bottom: 16px;
+}
+
+.zf-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #cdf77c, #7cbf3e);
+  color: #20340f;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 #4f7d22;
+}
+
+.zf-footer {
+  text-align: center;
+  padding: 30px 20px 50px;
+  color: #8a5a34;
+  font-size: 13px;
+}
+
+.zf-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  background: rgba(108, 174, 62, 0.2);
+  color: #cdf77c;
+  border: 1px solid #6cae3e;
+  border-radius: 20px;
+  padding: 3px 10px;
+  margin-bottom: 14px;
+}
