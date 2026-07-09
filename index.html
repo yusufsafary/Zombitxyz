@@ -58,14 +58,6 @@
       .isp-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; padding: 5px 0; }
       .isp-row input { width: 18px; height: 18px; cursor: pointer; }
       /* Access gate (giris sifresi) */
-      #introGate { display: none; flex-direction: column; align-items: center; gap: 12px; }
-      #introGateTitle { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 18px; font-weight: 800; color: #ffe9be; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-      #introGateRow { display: flex; gap: 8px; }
-      #introGateInput { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 18px; padding: 11px 14px; border-radius: 12px; border: 2px solid #5b3a1c; background: rgba(20,14,8,.92); color: #fff3e0; outline: none; width: 220px; }
-      #introGateInput:focus { border-color: #a9743f; }
-      #introGateBtn { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 18px; font-weight: 800; color: #20340f; background: linear-gradient(180deg, #cdf77c, #7cbf3e); border: none; border-radius: 12px; padding: 11px 26px; cursor: pointer; box-shadow: 0 4px 0 #4f7d22; }
-      #introGateBtn:active { transform: translateY(2px); box-shadow: 0 2px 0 #4f7d22; }
-      #introGateErr { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; color: #ff9a9a; min-height: 18px; }
 
     </style>
     <script src="/assets/wallet-multi.js"></script>
@@ -108,15 +100,6 @@
       <div id="introCenter">
         <img id="introLogo" src="/assets/ui/zombitfarmers.png" alt="ZOMBIT FARMER">
         <button id="introPlay">▶ Play</button>
-
-        <div id="introGate">
-          <div id="introGateTitle">🔒 Enter access code to play</div>
-          <div id="introGateRow">
-            <input id="introGateInput" type="password" placeholder="Access code" autocomplete="off" spellcheck="false">
-            <button id="introGateBtn">Enter</button>
-          </div>
-          <div id="introGateErr"></div>
-        </div>
       </div>
     </div>
 
