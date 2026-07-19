@@ -1,4 +1,4 @@
-# ZOMBIT FARMER
+# ENTROPIC GAMES
 
     A farming game built with Phaser/Vite.
 
