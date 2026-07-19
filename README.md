@@ -1,9 +1,9 @@
-# ENTROPIC GAMES
+# ZOMBIT FARMER
 
     A farming game built with Phaser/Vite.
 
     ## Play
-    Live at: https://ENTR0PIC.xyz
+    Live at: https://zombitxyz.vercel.app
 
     ## Tech
     - Phaser 3
